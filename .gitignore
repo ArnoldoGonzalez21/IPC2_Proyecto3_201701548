@@ -1,4 +1,5 @@
 /Api/__pycache__
 /Api/pruebas
-/Frontend/__pycache__
-/Frontend/pruebas
+/Frontend/Frontend/__pycache__
+/Frontend/app/__pycache__
+/Frontend/app/migrations/__pycache__
