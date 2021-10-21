@@ -77,6 +77,9 @@ class Manager():
                 contador += 1
         return contador
     
+    def eliminar_solicitudes(self):
+        self.solicitudes.clear()
+    
     #----------------------------------ERROR----------------------------------------------   
     
     def añadir_error(self, fecha, error_nit_emisor, error_nit_receptor, error_iva, error_total, error_referencia):

@@ -72,14 +72,23 @@ def agregar_solicitud():
                 manager.modificar_errores_fecha(fecha, error_nit_emisor, error_nit_receptor, error_iva, error_total, error_referencia)
             else:
                 manager.añadir_error(fecha, error_nit_emisor, error_nit_receptor, error_iva, error_total, error_referencia)
-            #return jsonify({'agregado': 0,'mensaje':'Error ingreso Datos'}), 300
-    
-    return jsonify({'agregado': 1,'mensaje':'Archivo XML cargado correctamente :D'}), 300
+            
+    return jsonify({'agregado': 1,'mensaje':'Archivo XML cargado correctamente :D', 'contenido': xml}), 300
 
 @app.route('/mostrar_solicitudes', methods=['GET'])
-def get_characters():
+def mostrar_solicitudes():
     c = manager.obtener_solicitudes()
     return jsonify(c), 300
+
+@app.route('/reset_autorizaciones', methods=['POST'])
+def reset_autorizaciones():
+    manager.eliminar_solicitudes()
+    return jsonify({"mensaje":"Solicitudes Eliminadas Exitosamente"}), 300
+
+@app.route('/consultar_datos', methods=['GET'])
+def consultar_datos():
+    salida = archivo_salida()
+    return jsonify({"mensaje":"Solicitudes Eliminadas Exitosamente", 'contenido': salida}), 300
 
 def cargar_base_datos():
     try:
