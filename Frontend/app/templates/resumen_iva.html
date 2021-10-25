@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="jumbotron text-center">
+    <div class="container">
+        <h1 class="jumbotron-heading">Petición Resumen IVA</h1>
+        <p class="lead text-muted">Autorización de Documento Tributario Electrónico (DTE)</p>
+        <div class="mb-3">
+            <h5 class="jumbotron-heading" for="id_fecha">Fecha</h5>
+            <input id="id_fecha" width="270" type='text'  name = "fecha" placeholder="Ingrese la fecha" />
+        </div>    
+        <div class="mb-3">    
+            <button type="submit" class="btn btn-success btn-block" onclick = "graficar()">Obtener</button>
+            <a id="download" download="grafica_resumen_iva.png"><button type="button" class="btn btn-warning btn-block" onClick="guardar_imagen_pdf()">Descargar Gráfica</button></a>
+        </div>
+        <canvas id = 'grafica_rango' width = 400 height = 400></canvas>        
+    </div>   
+</section>
+<script>
+    $('#id_fecha').datepicker({
+        format: 'dd/mm/yyyy',
+        uiLibrary: 'bootstrap'
+    });
+</script>
+<script>
+    const url = "http://localhost:3000/";
+    function graficar(){
+        if(validar_ingreso()){
+            var ruta = url + 'obtener_resumen_iva';
+            const datos = JSON.stringify({
+                fecha: document.getElementById("id_fecha").value                
+            })
+            const parametros = {
+                headers:{
+                    'content-type':'application/json; charset=utf-8'
+                },
+                body: datos,
+                method: 'POST',
+            };
+            fetch(ruta, parametros)
+            .then(data=>{ return data.json()})
+            .then(res=>{
+                console.log(res.length);
+                if (res.length >= 0){
+                    console.log(res)
+                    crear_grafica(res);
+                }
+            })
+            .then(error=>console.log(error))
+        }else {
+            alert('Por favor, completa todos los campos, todos son necesarios');
+        }
+    }
+
+    function validar_ingreso(){
+        fecha = document.getElementById("id_fecha").value;
+        if (fecha == null || fecha.length == 0 || /^\s+$/.test(fecha)) {
+            return false;
+        }
+        return true;
+    }
+
+    function crear_grafica(json){
+        console.log(json)
+        contador_espacio = 0
+        var ctx = document.getElementById("grafica_rango").getContext('2d');
+        data_contenido = []
+        for (var i = 0; i < json.length; i++) {
+            let nuevaData = data_contenido.push({"label": 'Nit emisor: '+json[i].nit_emisor, "data": [{
+                "x": contador_espacio,
+                "y": json[i].iva
+            }], "backgroundColor": get_rgb_random()})
+            contador_espacio += 5;
+            nuevaData = data_contenido.push({"label": 'Nit receptor: '+json[i].nit_receptor, "data": [{
+                "x": contador_espacio,
+                "y": json[i].iva
+            }], "backgroundColor": get_rgb_random()})
+            contador_espacio += 5;
+        }   
+        const data = {
+            datasets: data_contenido,
+        };    
+        var myChart= new Chart(ctx,{
+            type:"scatter",
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    function get_rgb_random() {
+        num1 = Math.round((Math.random() * (255 - 0) + 0));
+        num2 = Math.round((Math.random() * (255 - 0) + 0));
+        num3 = Math.round((Math.random() * (255 - 0) + 0));
+        rgb = 'rgb('+num1+','+num2+','+num3+')'
+        return rgb
+    }
+
+    function guardar_imagen_pdf(){
+        Canvas = document.getElementById("grafica_rango");
+        Context = Canvas.getContext("2d");
+        var imgData = Canvas.toDataURL('image/png');
+        var pdf = new jsPDF('landscape');
+        pdf.addImage(imgData, 'PNG', 0, 0, 200, 200);
+        pdf.save('grafica_rango.pdf');
+        guardar_imagen_png()
+    }
+
+    function guardar_imagen_png(){
+        var download = document.getElementById("download");
+        var image = document.getElementById("grafica_rango").toDataURL("image/png")
+                    .replace("image/png", "image/octet-stream");
+        download.setAttribute("href", image);
+    }
+
+</script>
+{% endblock content %}

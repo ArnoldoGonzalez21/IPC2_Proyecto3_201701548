@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="jumbotron text-center">
+    <div class="container">
+        <h1 class="jumbotron-heading">Petición Rango Fechas</h1>
+        <p class="lead text-muted">Autorización de Documento Tributario Electrónico (DTE)</p>
+        <div class="mb-3">
+            <h5 class="jumbotron-heading" for="id_fecha_1">Rango Menor</h5>
+            <input id="id_fecha_1" width="270" type='text'  name = "fecha_1" placeholder="Ingrese la fecha menor" />
+        </div>
+        <div class="mb-3">
+            <h5 class="jumbotron-heading" for="id_fecha_2">Rango Mayor</h5>
+            <input id="id_fecha_2" width="270" type='text'  name = "fecha_2"  placeholder="Ingrese la fecha mayor"/>
+        </div>
+        <div class="mb-3">
+            <h5 class="jumbotron-heading" for="iva">Seleccione el Tipo de Valores</h5>
+            <select name="select_peticion" id = 'select_peticion' class="btn btn-primary btn-block">
+                <option value="1" selected>Valores Totales</option>
+                <option value="2">Valores sin IVA</option>
+            </select>
+        </div>    
+        <div class="mb-3">    
+            <button type="submit" class="btn btn-success btn-block" onclick = "graficar()">Obtener</button>
+            <a id="download" download="grafica_rango.png"><button type="button" class="btn btn-warning btn-block" onClick="guardar_imagen_pdf()">Descargar Gráfica</button></a>
+        </div>
+        <canvas id = 'grafica_rango' width = 400 height = 400></canvas>
+    </div>   
+</section>
+<script>
+    $('#id_fecha_1').datepicker({
+        format: 'dd/mm/yyyy',
+        uiLibrary: 'bootstrap'
+    });
+    $('#id_fecha_2').datepicker({
+        format: 'dd/mm/yyyy',
+        uiLibrary: 'bootstrap'
+    });
+</script>
+<script>
+    const url = "http://localhost:3000/";
+    function graficar(){
+        if(validar_ingreso()){
+            var ruta = url + 'rango';
+            var combo = document.getElementById("select_peticion");
+            const datos = JSON.stringify({
+                fecha_1: document.getElementById("id_fecha_1").value,
+                fecha_2: document.getElementById("id_fecha_2").value,
+                con_iva: combo.selectedIndex,
+            })
+            const parametros = {
+                headers:{
+                    'content-type':'application/json; charset=utf-8'
+                },
+                body: datos,
+                method: 'POST',
+            };
+            fetch(ruta, parametros)
+            .then(data=>{ return data.json()})
+            .then(res=>{
+                console.log(res.length);
+                if (res.length >= 0){
+                    crear_grafica(res);
+                }
+            })
+            .then(error=>console.log(error))
+        }else {
+            alert('Por favor, completa todos los campos, todos son necesarios');
+        }
+    }
+
+    function validar_ingreso(){
+        fecha_1 = document.getElementById("id_fecha_1").value;
+        if (fecha_1 == null || fecha_1.length == 0 || /^\s+$/.test(fecha_1) ) {
+            return false;
+        }
+        fecha_2 = document.getElementById("id_fecha_2").value;
+        if(fecha_2 == null || fecha_2.length == 0 || /^\s+$/.test(fecha_2) ) {
+            return false;
+        }
+        return true;
+    }
+    function crear_grafica(json){
+        console.log(json)
+        contador_espacio = 0
+        var ctx = document.getElementById("grafica_rango").getContext('2d');
+        data_contenido = []
+        for (var i = 0; i < json.length; i++) {
+            let nuevaData = data_contenido.push({"label": json[i].fecha, "data": [{
+                "x": contador_espacio,
+                "y": json[i].valor
+            }], "backgroundColor": get_rgb_random()})
+            contador_espacio += 5;
+        }   
+        const data = {
+            datasets: data_contenido,
+        };    
+        var myChart= new Chart(ctx,{
+            type:"scatter",
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    function get_rgb_random() {
+        num1 = Math.round((Math.random() * (255 - 0) + 0));
+        num2 = Math.round((Math.random() * (255 - 0) + 0));
+        num3 = Math.round((Math.random() * (255 - 0) + 0));
+        rgb = 'rgb('+num1+','+num2+','+num3+')'
+        return rgb
+    }
+    function guardar_imagen_pdf(){
+        Canvas = document.getElementById("grafica_rango");
+        Context = Canvas.getContext("2d");
+        var imgData = Canvas.toDataURL('image/png');
+        var pdf = new jsPDF('landscape');
+        pdf.addImage(imgData, 'PNG', 0, 0, 200, 200);
+        pdf.save('grafica_rango.pdf');
+        guardar_imagen_png()
+    }
+    
+    function guardar_imagen_png(){
+        var download = document.getElementById("download");
+        var image = document.getElementById("grafica_rango").toDataURL("image/png")
+                    .replace("image/png", "image/octet-stream");
+        download.setAttribute("href", image);
+    }
+
+</script>
+{% endblock content %}
