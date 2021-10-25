@@ -45,7 +45,8 @@ def agregar_solicitud():
             error = True
             
         valor = elemento.findtext('VALOR').strip()
-        if not tamano_valor(float(valor)):
+        if not tamano_valor(valor):
+            print('valor')
             error = True
         
         iva = elemento.findtext('IVA').strip()
@@ -85,15 +86,36 @@ def reset_autorizaciones():
     manager.eliminar_solicitudes()
     return jsonify({"mensaje":"Solicitudes Eliminadas Exitosamente"}), 300
 
-@app.route('/consultar_datos', methods=['GET'])
-def consultar_datos():
-    salida = archivo_salida()
-    return jsonify({"mensaje":"Solicitudes Eliminadas Exitosamente", 'contenido': salida}), 300
+@app.route('/obtener_datos', methods=['POST'])
+def obtener_datos():
+    contenido = archivo_salida()
+    return jsonify(contenido), 300
+
+@app.route('/obtener_resumen_iva', methods=['POST'])
+def obtener_resumen_iva():
+    cuerpo = request.get_json()
+    fecha = cuerpo['fecha']
+    json_iva = manager.obtener_resumen_iva(fecha)
+    return jsonify(json_iva), 300
+
+@app.route('/rango', methods=['POST'])
+def obtener_resumen_iva_rango():
+    cuerpo = request.get_json()
+    fecha_1 = cuerpo['fecha_1']
+    fecha_2 = cuerpo['fecha_2']
+    con_iva = cuerpo['con_iva']
+    entra = True
+    if con_iva == 0:
+        entra = True
+    else:
+        entra = False
+    json_rango = manager.obtener_resumen_iva_rango(fecha_1, fecha_2, entra)
+    return jsonify(json_rango), 300
 
 def cargar_base_datos():
     try:
         with open('Base_Datos/Base_datos.xml', 'rt', encoding = 'utf-8') as f:
-            print('Base cargada con éxito')
+            print('<<<Base cargada con éxito>>>')
             tree = ET.parse(f)
             root = tree.getroot()
             for elemento in root:
@@ -261,5 +283,5 @@ def escribir_archivo(contenido_xml, nombre_archivo):
 if __name__ == '__main__':
     cargar_base_datos()
     puerto = int(os.environ.get('PORT', 3000))
-    app.run(host = 'localhost', port = puerto)  
+    app.run(debug = True, host = 'localhost', port = puerto)  
     escribir_archivo(archivo_salida(), 'salida')

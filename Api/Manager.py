@@ -79,6 +79,61 @@ class Manager():
     
     def eliminar_solicitudes(self):
         self.solicitudes.clear()
+        
+    def obtener_resumen_iva(self, fecha):
+        json_iva = []
+        for requests in self.solicitudes:
+            if requests.fecha == fecha:
+                json_iva.append(requests.get_json_iva_nit())
+        return json_iva  
+    
+    def obtener_resumen_iva_rango(self, fecha_1, fecha_2, con_iva): #fecha_1 -> mas baja - fecha_2 -> mas alta
+        json_rango = []
+        lista_fecha_1 = fecha_1.split('/')
+        lista_fecha_2 = fecha_2.split('/')
+        for x in self.solicitudes:
+            solicitud_dividida = x.fecha.split('/')
+            
+            if fecha_1 == x.fecha or fecha_2 == x.fecha:
+                if con_iva:
+                    json_rango.append(x.get_json_iva_nit_rango_total())
+                else:
+                    json_rango.append(x.get_json_iva_nit_rango_valor())
+          
+            elif lista_fecha_1[2] < solicitud_dividida[2] and lista_fecha_2[2] > solicitud_dividida[0]: #entre años parametro
+                if con_iva:
+                    json_rango.append(x.get_json_iva_nit_rango_total())
+                else:
+                    json_rango.append(x.get_json_iva_nit_rango_valor())
+            
+            elif lista_fecha_1[2] == solicitud_dividida[2]: #año mas bajo igual
+                if lista_fecha_1[1] < solicitud_dividida[1]: #mes lista mayor al del parametro
+                    if con_iva:
+                        json_rango.append(x.get_json_iva_nit_rango_total())
+                    else:
+                        json_rango.append(x.get_json_iva_nit_rango_valor()) 
+                
+                elif lista_fecha_1[1] == solicitud_dividida[1]: #mes mas bajo igual
+                    if lista_fecha_1[0] <= solicitud_dividida[0]: #dia mas bajo mayor o igual
+                        if con_iva:
+                            json_rango.append(x.get_json_iva_nit_rango_total())
+                        else:
+                            json_rango.append(x.get_json_iva_nit_rango_valor()) 
+            
+            elif lista_fecha_2[2] == solicitud_dividida[2]: #año mas alto igual
+                if lista_fecha_2[1] > solicitud_dividida[1]: #mes lista menor al del parametro
+                    if con_iva:
+                        json_rango.append(x.get_json_iva_nit_rango_total())
+                    else:
+                        json_rango.append(x.get_json_iva_nit_rango_valor())
+                
+                elif lista_fecha_2[1] == solicitud_dividida[1]: #mes mas alto igual
+                    if lista_fecha_2[0] >= solicitud_dividida[0]: #dia de la lista menor o igual
+                        if con_iva:
+                            json_rango.append(x.get_json_iva_nit_rango_total())
+                        else:
+                            json_rango.append(x.get_json_iva_nit_rango_valor())                         
+        return json_rango    
     
     #----------------------------------ERROR----------------------------------------------   
     

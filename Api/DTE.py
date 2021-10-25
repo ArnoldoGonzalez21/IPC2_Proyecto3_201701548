@@ -26,3 +26,23 @@ class DTE():
             "total": self.total,
             "contador_codigo": self.contador_codigo   
         } 
+    
+    def get_json_iva_nit(self):
+        return{
+            "fecha": self.fecha,
+            "nit_emisor": self.nit_emisor,
+            "nit_receptor": self.nit_receptor,
+            "iva": self.iva
+        }  
+    
+    def get_json_iva_nit_rango_total(self):
+        return{
+            "fecha": self.fecha,            
+            "valor": self.total
+        }
+    
+    def get_json_iva_nit_rango_valor(self):
+            return{
+            "fecha": self.fecha,            
+            "valor": self.valor
+        }                        
