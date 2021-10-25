@@ -7,16 +7,7 @@ import requests
 endpoint = 'http://localhost:3000/'
 def home(request):
     if request.method == 'GET':
-        context = {
-            'solicitudes' : []
-        }
-        try:
-            response = requests.get(endpoint + 'mostrar_solicitudes')
-            solicitudes = response.json()
-            context['solicitudes'] = solicitudes
-        except:
-            print('La Api no está levantada')
-        return render(request, 'index.html', context)
+        return render(request, 'index.html')
     
     elif request.method == 'POST':
         docs = request.FILES['archivo_entrada']

@@ -36,7 +36,7 @@
 <div class="album py-5 bg-light">
   <div class="container">
     <a class="btn btn-danger btn-block" id = "reset" name = "reset" onclick = "eliminar()">Reset</a>
-    <button type="button" class="btn btn-warning btn-block" onClick="crearPDF()">Guardar Datos</button></a>
+    <button type="button" class="btn btn-warning btn-block" onClick="obtener_dato22222()">Guardar Datos</button></a>
     <div class="row">
       <div class="card-body">
         <textarea class="resizable" rows="10" cols="50" type="text" id = "txt_entrada" name = "txt_entrada" disabled>{{respuesta.contenido}}</textarea>
@@ -45,7 +45,6 @@
     </div>
   </div>
 </div>
-
 <script>
   const url = "http://localhost:3000/";
     
@@ -61,23 +60,29 @@
     document.getElementById("txt_salida").value = "";
   }
 
-  function obtener_datos(){
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', url + 'consultar_datos');
-    xhr.send()
-    xhr.onreadystatechange = (e) => {
-      var datos = JSON.parse(xhr.responseText);
-      contenido = datos.contenido;                                                    
-      $("#txt_salida").val(contenido);
-    }
+  function obtener_salida(){
+    var ruta = url + 'obtener_datos';
+    const parametros = {
+      headers:{
+        'content-type':'application/json; charset=utf-8'
+      },
+      body: 0,
+      method: 'POST',
+    };
+    fetch(ruta, parametros)
+    .then(data=>{ return data.json()})
+    .then(res=>{
+      console.log(res);
+      $("#txt_salida").val(res);
+    })
+    .then(error=>console.log(error))
   }
 
   function obtener_valores_peticion(){
-    console.log('entre')
     var valor = $("#select_peticion").val();
     switch (valor) {
       case '1':
-        obtener_datos();
+        obtener_salida();
         break;
       case '2':
         window.location.href = "resumen_iva"
