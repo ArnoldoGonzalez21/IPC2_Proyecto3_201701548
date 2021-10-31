@@ -39,11 +39,9 @@
             fetch(ruta, parametros)
             .then(data=>{ return data.json()})
             .then(res=>{
-                console.log(res.length);
-                if (res.length >= 0){
-                    console.log(res)
-                    crear_grafica(res);
-                }
+                console.log(res.receptor)
+                console.log(res.emisor)
+                crear_grafica(res.emisor, res.receptor);
             })
             .then(error=>console.log(error))
         }else {
@@ -59,37 +57,39 @@
         return true;
     }
 
-    function crear_grafica(json){
-        console.log(json)
-        contador_espacio = 0
+    function crear_grafica(emisor, receptor){
         var ctx = document.getElementById("grafica_rango").getContext('2d');
+        etiquetas = []
         data_contenido = []
-        for (var i = 0; i < json.length; i++) {
-            let nuevaData = data_contenido.push({"label": 'Nit emisor: '+json[i].nit_emisor, "data": [{
-                "x": contador_espacio,
-                "y": json[i].iva
-            }], "backgroundColor": get_rgb_random()})
-            contador_espacio += 5;
-            nuevaData = data_contenido.push({"label": 'Nit receptor: '+json[i].nit_receptor, "data": [{
-                "x": contador_espacio,
-                "y": json[i].iva
-            }], "backgroundColor": get_rgb_random()})
-            contador_espacio += 5;
-        }   
-        const data = {
-            datasets: data_contenido,
-        };    
+        colores = []
+        for (var i = 0; i < emisor.length; i++) {
+            let nuevaEtiqueta = etiquetas.push("nit_emisor "+emisor[i].nit_emisor)
+            let nuevaData = data_contenido.push(emisor[i].iva)
+            let nuevoColor = colores.push(get_rgb_random())
+        } 
+        for (var i = 0; i < receptor.length; i++) {
+            let nuevaEtiqueta = etiquetas.push("nit_receptor "+receptor[i].nit_receptor)
+            let nuevaData = data_contenido.push(receptor[i].iva)
+            let nuevoColor = colores.push(get_rgb_random())
+        }
+        
         var myChart= new Chart(ctx,{
-            type:"scatter",
-            data: data,
+            type:"bar",
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    label: document.getElementById("id_fecha").value,
+                    data: data_contenido,
+                    backgroundColor: colores
+                }]
+            },
             options: {
                 scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'bottom'
+                    y: {
+                        beginAtZero: true
                     }
                 }
-            }
+            },
         });
     }
 
