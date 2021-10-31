@@ -28,6 +28,7 @@
         <option value="1" selected>Información Estudiante</option>
         <option value="2" >Documentación</option>
       </select>
+      <!--<a class="btn btn-secondary my-2" href="{% url 'documentacion' %}" target="_blank">Ayuda</a>   -->
       <a class="btn btn-secondary my-2" onclick="obtener_valores_ayuda()">Ayuda</a>
     </p>
   </div>
@@ -36,7 +37,7 @@
 <div class="album py-5 bg-light">
   <div class="container">
     <a class="btn btn-danger btn-block" id = "reset" name = "reset" onclick = "eliminar()">Reset</a>
-    <button type="button" class="btn btn-warning btn-block" onClick="obtener_dato22222()">Guardar Datos</button></a>
+    <button type="button" class="btn btn-warning btn-block" onClick="descargar_salida()">Descargar Autorizaciones</button></a>
     <div class="row">
       <div class="card-body">
         <textarea class="resizable" rows="10" cols="50" type="text" id = "txt_entrada" name = "txt_entrada" disabled>{{respuesta.contenido}}</textarea>
@@ -100,7 +101,7 @@
         datos_estudiante();
         break;
       case '2':
-        console.log(2);
+        window.open("documentacion")
         break;
       }        
     }  
@@ -117,11 +118,38 @@
       alert(contenido);
   }  
 
-  function crearPDF(){
-    var pdf = new jsPDF();
-    pdf.fromHTML($('#txt_salida').get(0),10,10,{'width':180});
-    pdf.autoPrint();
-    pdf.output("dataurlnewwindow")
+  function descargar_salida(){
+    if (validar_ingreso()){
+      console.log(validar_ingreso())
+      var ruta = url + 'guardar_salida';
+      const parametros = {
+        headers:{
+          'content-type':'application/json; charset=utf-8'
+        },
+        body: 0,
+        method: 'POST',
+      };
+      fetch(ruta, parametros)
+      .then(data=>{ return data.json()})
+      .then(res=>{
+        console.log(res);
+        if (res.exito == 0){
+          alert(res.mensaje);
+        }
+      })
+      .then(error=>console.log(error))
+    
+    }else{
+      alert('Realice la consulta de datos previamente');
+    }
+  }
+  
+  function validar_ingreso(){
+    salida = document.getElementById("txt_salida").value;
+    if (salida == null || salida.length == 0 || /^\s+$/.test(salida) ) {
+      return false;
+    }
+    return true;
   }
 
 </script>

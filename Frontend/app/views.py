@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from app.forms import RangoForm
+#from app.forms import RangoForm
+from django.http import FileResponse
+from Frontend.settings import PDF_FILES_FOLDER
 import requests
 
 # Create your views here.
@@ -24,6 +26,10 @@ def rango(request):
 
 def resumen_iva(request):
     return render(request, 'resumen_iva.html')
+
+def pdf_view(request):
+    pdf = open(PDF_FILES_FOLDER + 'documentacion.pdf', 'rb')
+    return FileResponse(pdf)
 
 '''
 def rango(request):
