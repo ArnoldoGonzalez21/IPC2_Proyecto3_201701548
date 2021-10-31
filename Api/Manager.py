@@ -77,16 +77,57 @@ class Manager():
                 contador += 1
         return contador
     
-    def eliminar_solicitudes(self):
-        self.solicitudes.clear()
-        self.errores.clear()
-        
-    def obtener_resumen_iva(self, fecha):
-        json_iva = []
+    def obtener_lista_receptor(self, fecha): 
+        receptores = []
         for requests in self.solicitudes:
             if requests.fecha == fecha:
-                json_iva.append(requests.get_json_iva_nit())
-        return json_iva  
+                if self.existe_receptor_iva(requests.nit_receptor, receptores):
+                    receptores = self.unir_iva_receptor(requests.nit_receptor, requests.iva, receptores)
+                else:
+                    receptores.append(requests.get_json_iva_nit_receptor())
+        return receptores
+    
+    def obtener_lista_emisor(self, fecha): 
+        emisores = []
+        for requests in self.solicitudes:
+            if requests.fecha == fecha:
+                if self.existe_emisor_iva(requests.nit_emisor, emisores):
+                    emisores = self.unir_iva_emisor(requests.nit_emisor, requests.iva, emisores)
+                else:
+                    emisores.append(requests.get_json_iva_nit_emisor())
+        return emisores
+    
+    def existe_emisor_iva(self, valor, lista):
+        for x in lista:
+            if x['nit_emisor'] == str(valor):
+                return True
+        return False
+    
+    def existe_receptor_iva(self, valor, lista):
+        for x in lista:
+            if x['nit_receptor'] == valor:
+                return True
+        return False
+    
+    def unir_iva_receptor(self, valor_nit, iva_entrada, lista):
+        nuevo_iva = 0
+        for x in lista:
+            if x['nit_receptor'] == valor_nit:
+                nuevo_iva = float(x['iva']) + float(iva_entrada)
+                nuevo_iva = round(nuevo_iva, 2)
+                x['iva'] = nuevo_iva
+                return lista
+        return lista
+    
+    def unir_iva_emisor(self, valor_nit, iva_entrada, lista):
+        nuevo_iva = 0
+        for x in lista:
+            if x['nit_emisor'] == valor_nit:
+                nuevo_iva = float(x['iva']) + float(iva_entrada)
+                nuevo_iva = round(nuevo_iva, 2)
+                x['iva'] = nuevo_iva
+                return lista
+        return lista
     
     def obtener_resumen_iva_rango(self, fecha_1, fecha_2, con_iva): #fecha_1 -> mas baja - fecha_2 -> mas alta
         json_rango = []
@@ -136,6 +177,10 @@ class Manager():
                             json_rango.append(x.get_json_iva_nit_rango_valor())                         
         return json_rango    
     
+    def eliminar_solicitudes(self):
+        self.solicitudes.clear()
+        self.errores.clear()
+            
     #----------------------------------ERROR----------------------------------------------   
     
     def añadir_error(self, fecha, error_nit_emisor, error_nit_receptor, error_iva, error_total, error_referencia):

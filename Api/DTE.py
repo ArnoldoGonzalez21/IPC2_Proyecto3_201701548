@@ -27,13 +27,19 @@ class DTE():
             "contador_codigo": self.contador_codigo   
         } 
     
-    def get_json_iva_nit(self):
+    def get_json_iva_nit_receptor(self):
         return{
             "fecha": self.fecha,
-            "nit_emisor": self.nit_emisor,
             "nit_receptor": self.nit_receptor,
             "iva": self.iva
         }  
+    
+    def get_json_iva_nit_emisor(self):
+        return{
+            "fecha": self.fecha,
+            "nit_emisor": self.nit_emisor,
+            "iva": self.iva
+        }      
     
     def get_json_iva_nit_rango_total(self):
         return{

@@ -97,8 +97,12 @@ def obtener_datos():
 def obtener_resumen_iva():
     cuerpo = request.get_json()
     fecha = cuerpo['fecha']
-    json_iva = manager.obtener_resumen_iva(fecha)
-    return jsonify(json_iva), 300
+    json_receptor = manager.obtener_lista_receptor(fecha)
+    json_emisor = manager.obtener_lista_emisor(fecha)
+    print(json_receptor)
+    print('-------------------')
+    print(json_emisor)
+    return jsonify({'agregado': 1,'receptor': json_receptor, 'emisor': json_emisor}), 300
 
 @app.route('/rango', methods=['POST'])
 def obtener_resumen_iva_rango():
