@@ -63,12 +63,12 @@
         data_contenido = []
         colores = []
         for (var i = 0; i < emisor.length; i++) {
-            let nuevaEtiqueta = etiquetas.push("nit_emisor "+emisor[i].nit_emisor)
+            let nuevaEtiqueta = etiquetas.push("Nit emisor: "+emisor[i].nit_emisor)
             let nuevaData = data_contenido.push(emisor[i].iva)
             let nuevoColor = colores.push(get_rgb_random())
         } 
         for (var i = 0; i < receptor.length; i++) {
-            let nuevaEtiqueta = etiquetas.push("nit_receptor "+receptor[i].nit_receptor)
+            let nuevaEtiqueta = etiquetas.push("Nit receptor: \n"+receptor[i].nit_receptor)
             let nuevaData = data_contenido.push(receptor[i].iva)
             let nuevoColor = colores.push(get_rgb_random())
         }
