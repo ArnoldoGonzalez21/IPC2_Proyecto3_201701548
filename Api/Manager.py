@@ -23,7 +23,7 @@ class Manager():
         return json_solicitudes
     
     def obtener_contador_codigo(self, fecha):
-        nuevo_contador = 0
+        nuevo_contador = 1
         for requests in self.solicitudes:
             if requests.fecha == fecha:
                 nuevo_contador = requests.contador_codigo
@@ -79,6 +79,7 @@ class Manager():
     
     def eliminar_solicitudes(self):
         self.solicitudes.clear()
+        self.errores.clear()
         
     def obtener_resumen_iva(self, fecha):
         json_iva = []

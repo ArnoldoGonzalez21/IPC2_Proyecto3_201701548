@@ -2,11 +2,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 from Manager import Manager
+from Analizador import Analizador
 from xml.etree import ElementTree as ET
 
 app = Flask(__name__)
 CORS(app)
 manager = Manager()
+lexico = Analizador()
 
 @app.route('/', methods=['GET'])
 def principal():
@@ -46,8 +48,7 @@ def agregar_solicitud():
             
         valor = elemento.findtext('VALOR').strip()
         if not tamano_valor(valor):
-            print('valor')
-            error = True
+            valor = truncate(valor, 2)
         
         iva = elemento.findtext('IVA').strip()
         if not cantidad_iva(float(valor), float(iva)):
@@ -67,7 +68,7 @@ def agregar_solicitud():
             
         if not error:
             manager.añadir_solicitud(codigo_aprobacion, lugar, fecha, hora, referencia, nit_emisor, nit_receptor, valor, iva, total, int(contador_codigo) + 1)
-            escribir_archivo(contenido_base_datos(), 'Base_datos')
+            escribir_archivo(contenido_base_datos(), 'Base_datos', 'Base_Datos')
         else:
             if manager.existe_fecha(fecha):
                 manager.modificar_errores_fecha(fecha, error_nit_emisor, error_nit_receptor, error_iva, error_total, error_referencia)
@@ -84,6 +85,7 @@ def mostrar_solicitudes():
 @app.route('/reset_autorizaciones', methods=['POST'])
 def reset_autorizaciones():
     manager.eliminar_solicitudes()
+    escribir_archivo(contenido_base_datos(), 'Base_datos', 'Base_Datos')
     return jsonify({"mensaje":"Solicitudes Eliminadas Exitosamente"}), 300
 
 @app.route('/obtener_datos', methods=['POST'])
@@ -111,6 +113,11 @@ def obtener_resumen_iva_rango():
         entra = False
     json_rango = manager.obtener_resumen_iva_rango(fecha_1, fecha_2, entra)
     return jsonify(json_rango), 300
+
+@app.route('/guardar_salida', methods=['POST'])
+def guardar_salida():
+    escribir_archivo(archivo_salida(), 'Autorizaciones', '../Archivo_Salida')
+    return jsonify({'exito': 0,'mensaje':'Archivo XML creado correctamente'}), 300
 
 def cargar_base_datos():
     try:
@@ -167,14 +174,11 @@ def validar_nit(entrada):
 # 2 4 2 8 4 9 5 5 --> NIT         3 9 8 8 8 3 2 0
 # 8 7 6 5 4 3 2 1 --> POSICION    8 7 6 5 4 3 2 1
 
-def obtener_fecha_lugar(entrada : str):
-    entrada = entrada.split(',')
-    lugar = entrada[0].strip()
-    resto = entrada[1].strip().split(' ', maxsplit = 1)
-    fecha = resto[0].strip()
-    hora = resto[1].strip()
-    tiempo = {'lugar':lugar, 'fecha':fecha, 'hora':hora}
-    return tiempo   
+def obtener_fecha_lugar(entrada):
+    lexico.analizador_estados(entrada)
+    tiempo = lexico.obtener_tokens()
+    lexico.reiniciar_tokens()
+    return tiempo    
 
 def tamano_nit(entrada):
     if len(str(entrada)) <= 20:
@@ -202,6 +206,16 @@ def cantidad_total(valor, total):
     if valor == total:
         return True
     return False
+
+def truncate(num, n):
+    temp = str(num)
+    for x in range(len(temp)):
+        if temp[x] == '.':
+            try:
+                return str(float(temp[:x+n+1]))
+            except:
+                return temp   
+    return temp
 
 def contenido_base_datos():
     contenido = '<AUTORIZADA>'
@@ -254,6 +268,8 @@ def archivo_salida_listado_autorizaciones(fecha):
             <APROBACION>
                 <NIT_EMISOR ref="'''+solicitudes[i]['referencia']+'''">'''+solicitudes[i]['nit_emisor']+'''</NIT_EMISOR>
                 <CODIGO_APROBACION>'''+solicitudes[i]['codigo_aprobacion']+'''</CODIGO_APROBACION>
+                <NIT_RECEPTOR>'''+solicitudes[i]['nit_receptor']+'''</NIT_RECEPTOR>
+                <VALOR>'''+solicitudes[i]['valor']+'''</VALOR>
             </APROBACION>'''
     contenido += '\n\t\t</LISTADO_AUTORIZACIONES>'
     return contenido
@@ -273,15 +289,15 @@ def archivo_salida_error(fecha):
             </ERRORES>'''
     return contenido
 
-def escribir_archivo(contenido_xml, nombre_archivo):
-    os.makedirs('Base_Datos', exist_ok = True)
-    miArchivo = open('Base_Datos/'+nombre_archivo + '.xml','w')
+def escribir_archivo(contenido_xml, nombre_archivo, url_carpeta):
+    os.makedirs(url_carpeta, exist_ok = True)
+    miArchivo = open(url_carpeta+'/'+nombre_archivo + '.xml','w')
     miArchivo.write(contenido_xml)
     miArchivo.close()
-    print('Se generó el archivo correctamente')         
+    print('Se generó el archivo correctamente')              
 
 if __name__ == '__main__':
     cargar_base_datos()
     puerto = int(os.environ.get('PORT', 3000))
-    app.run(debug = True, host = 'localhost', port = puerto)  
-    escribir_archivo(archivo_salida(), 'salida')
+    app.run(host = 'localhost', port = puerto)  
+    escribir_archivo(archivo_salida(), 'salida', 'Base_Datos')
