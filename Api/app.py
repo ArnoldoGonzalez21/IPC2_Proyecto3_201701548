@@ -4,6 +4,7 @@ import os
 from Manager import Manager
 from Analizador import Analizador
 from xml.etree import ElementTree as ET
+from datetime import datetime 
 
 app = Flask(__name__)
 CORS(app)
@@ -31,6 +32,9 @@ def agregar_solicitud():
         fecha = dic_tiempo['fecha']
         hora = dic_tiempo['hora']
         
+        if not validar_formato_fecha(fecha):
+            error = True
+            
         referencia = elemento.findtext('REFERENCIA').strip()
         if manager.existe_referencia(referencia) or not tamano_referencia(referencia):
             error_nit_emisor = 1
@@ -184,6 +188,13 @@ def obtener_fecha_lugar(entrada):
     lexico.reiniciar_tokens()
     return tiempo    
 
+def validar_formato_fecha(fecha):
+    try:
+        datetime.strptime(fecha, '%d/%m/%Y')
+        return True
+    except ValueError:
+        return False
+
 def tamano_nit(entrada):
     if len(str(entrada)) <= 20:
         return True
@@ -244,6 +255,7 @@ def contenido_base_datos():
 
 def archivo_salida():
     fechas = manager.guardar_fecha_solicitud()
+    fechas.sort(key = lambda date: datetime.strptime(date, '%d/%m/%Y')) 
     contenido = '<LISTAAUTORIZACIONES>'
     for fecha in fechas:
         cant_facturas_correctas = manager.cantidad_facturas_fecha(fecha)
